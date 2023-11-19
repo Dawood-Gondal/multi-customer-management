@@ -1,0 +1,51 @@
+<?php
+/**
+ * @category    M2Commerce Enterprise
+ * @package     M2Commerce_MultiCustomerManagement
+ * @copyright   Copyright (c) 2023 M2Commerce Enterprise
+ * @author      dawoodgondaldev@gmail.com
+ */
+
+/** @var  $block \M2Commerce\MultiCustomerManagement\Block\Customer */
+?>
+
+<li style="position: relative; z-index: 9; margin-left: 8px;" data-bind="scope: 'section'">
+    <label class="customer-dropdown-label" data-bind="text: customsection().customdata"></label>
+    <div id="multicustomers">
+        <div class="loader-wrapper" style="display: none">
+            <div class="multicustomer-loader"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+</li>
+
+<script type="text/x-magento-init">
+    {
+    	"*": {
+        	"Magento_Ui/js/core/app": {
+            	"components": {
+                	"section": {
+                    	"component": "M2Commerce_MultiCustomerManagement/js/section"
+                	}
+            	}
+        	}
+    	}
+    }
+</script>
+
+<script>
+    require(['jquery'], function($) {
+        $(document).on('click', '.customer-dropdown-label', function(){
+            $(this).closest('body').find('#multicustomers').toggleClass('active');
+            $('.loader-wrapper, .multicustomer-loader').show();
+            $.get("<?= $block->getBaseUrl() ?>multicustomer/customer/data/",
+                {},
+                function (d) {
+                    $('.loader-wrapper, .multicustomer-loader').hide();
+                    $("#multicustomers").html(d.output);
+                    $("#multicustomers").trigger('contentUpdated');
+                }
+            );
+        });
+    });
+</script>

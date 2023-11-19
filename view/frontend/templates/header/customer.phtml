@@ -1,0 +1,58 @@
+<?php
+/**
+ * @category    M2Commerce Enterprise
+ * @package     M2Commerce_MultiCustomerManagement
+ * @copyright   Copyright (c) 2023 M2Commerce Enterprise
+ * @author      dawoodgondaldev@gmail.com
+ */
+
+/** @var $block \M2Commerce\MultiCustomerManagement\Block\Customer */
+?>
+<div class="customer-dropdown-wrapper">
+    <?php
+    $id = $block->getLoginCustomerId();
+    if ($id) :
+        $currentCustomer = $block->getCustomerById($id);
+        $multiCustomerParentEmail = $currentCustomer->getCustomAttribute("multicustomer_parent_email")->getValue();
+        $customers = $block->getFilteredCustomerCollection($multiCustomerParentEmail);
+        if ($customers->getItems()): ?>
+            <ul class="dropdown-list">
+                <li class="selected"><?= $currentCustomer->getFirstname()." ".$currentCustomer->getLastname() ?></li>
+                <?php foreach ((array)$customers->getItems() as $customer){
+                    if ($customer->getEntityId() != $id) { ?>
+                        <li class="multicustomer-option" id="<?= $customer->getEntityId() ?>">
+                            <a><?= $customer->getFirstname()." ".$customer->getLastname() ?></a>
+                        </li>
+                    <?php }
+                } ?>
+            </ul>
+        <?php else: ?>
+            <ul class="dropdown-list empty-dropdown"><li><?= $block->escapeHtml(__("No customers are available")) ?></li></ul>
+        <?php endif; ?>
+    <?php else: ?>
+        <ul class="dropdown-list empty-dropdown"><li><?= $block->escapeHtml(__("Please login to switch customer")) ?></li></ul>
+    <?php endif; ?>
+</div>
+
+<script>
+    require(['jquery'], function($) {
+        $(document).on('click', '.multicustomer-option', function(){
+            $("#multicustomers").html("<div class='loader-wrapper' style='display: none'><div class='multicustomer-loader'></div><p>Switching...</p></div>");
+            $('.loader-wrapper, .multicustomer-loader').show();
+            var id = $(this).attr("id");
+            $.post("<?= $block->getBaseUrl() ?>/customer/account/logout",
+                {},
+                function (d) {
+                    $.post("<?= $block->getBaseUrl() ?>multicustomer/customer/switchcustomer/",
+                        {
+                            customer_ids : {"old_customer_id" : "<?= $id ?>", "new_customer_id" : id}
+                        },
+                        function (d) {
+                            location.reload();
+                        }
+                    );
+                }
+            );
+        });
+    });
+</script>
